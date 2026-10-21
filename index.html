@@ -103,10 +103,10 @@ const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOStr
 const dm=d=>d?d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(0,4):"";
 let S,m=0,tab="in",q="",ref=null,DL=null,tm;
 const def=()=>({donors:D0.map(([n,a])=>({n,a})),pay:{},exp:{},open:0,t:0});
-const pm=(k,i)=>sum(((S.pay[k]||{})[i]||[]).map(p=>p.a));
-const inc=k=>sum(Object.values(S.pay[k]||{}).flat().map(p=>p.a)),sinc=inc;
+const pm=(k,i)=>sum(((S.pay[k]||{})[i]||[]).filter(p=>!p.x).map(p=>p.a));
+const inc=k=>sum(Object.values(S.pay[k]||{}).flat().filter(p=>!p.x).map(p=>p.a)),sinc=inc;
 const exo=k=>sum((S.exp[k]||[]).map(e=>e.a));
-const auto=k=>k==-7?0:k==0?(+S.open||0):opb(k-1)+inc(k-1)-exo(k-1);
+const auto=k=>k<=-7?0:k==0?(+S.open||0):opb(k-1)+inc(k-1)-exo(k-1);
 const opb=k=>(S.opens||{})[k]!=null?+S.opens[k]:auto(k);
 const dd=k=>k==cur()?today():ym(k)+"-"+String((mi(k)+3)%12+1).padStart(2,"0")+"-01";
 function so(v){S.opens=S.opens||{};if(v==="")delete S.opens[m];else S.opens[m]=+v||0;sv();R()}
@@ -133,14 +133,15 @@ function op(h){$("#sh").innerHTML=`<div class="box">${h}</div>`;$("#sh").classNa
 function cs(){$("#sh").className="";R()}
 function od(i){cdi=i;const d=S.donors[i],p=(S.pay[m]||{})[i]||[];
  op(`<label>பெயர் (திருத்தலாம்)</label><input value="${esc(d.n)}" onchange="S.donors[${i}].n=this.value.trim()||S.donors[${i}].n;sv()"><small>${MS[mi(m)]} ${yr(m)}</small>
- ${p.length?"<small>பதிவான பணம் - தொகை, தேதி, மாதங்களை மாற்றலாம்:</small>":""}${p.map((z,j)=>`<div class="pl"><input type="number" inputmode="numeric" value="${z.a}" onchange="ep(${i},${j},'a',this.value)"><input type="date" value="${z.d||""}" onchange="ep(${i},${j},'d',this.value)"><button onclick="dp(${i},${j},this)">நீக்கு</button></div><div class="chs">${rg(Math.min(-19,...(z.ms||[])),hi()+11).map(k=>chp(k,(z.ms||[]).includes(k),`te(${i},${j},${k},this)`)).join("")}</div>`).join("")}
+ ${p.length?"<small>பதிவான பணம் - தொகை, தேதி, மாதங்களை மாற்றலாம்:</small>":""}${p.map((z,j)=>`${z.x?"<small>⏪ முன்பே பெற்றது - வரவு கணக்கில் சேராது</small>":""}<div class="pl"><input type="number" inputmode="numeric" value="${z.a}" onchange="ep(${i},${j},'a',this.value)"><input type="date" value="${z.d||""}" onchange="ep(${i},${j},'d',this.value)"><button onclick="dp(${i},${j},this)">நீக்கு</button></div><div class="chs">${rg(Math.min(-19,...(z.ms||[])),hi()+11).map(k=>chp(k,(z.ms||[]).includes(k),`te(${i},${j},${k},this)`)).join("")}</div>`).join("")}
  <label>தொகை (₹)</label><input id="pa" type="number" inputmode="numeric" value="${d.a}" oninput="rsp()">
  <label>பணம் பெற்ற தேதி</label><input id="pd" type="date" value="${dd(m)}">
- <label>எந்த மாதங்களுக்கு? மாதங்களை தட்டச்சு செய்யவும் அல்லது கீழே தொடவும்</label><input id="mtx" placeholder="எ.கா. மார்ச்-26, ஏப்ரல்-26  அல்லது  செப்-25 முதல் மார்ச்-26 வரை" oninput="pt(this.value)"><div class="chs" id="nch">${PKf().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("")}</div><details id="dpre"${nm.some(k=>k<-7)?" open":""}><summary>செப்டம்பர் 2025-க்கு முந்தைய மாதங்கள் (நிலுவை) - தொட்டுத் தேர்வு செய்ய</summary><div class="chs" id="nch2">${PKp().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("")}</div></details><div id="spw"></div><small>எதுவும் குறிப்பிடாவிட்டால்: ${MS[mi(m)]} ${yr(m)} சந்தாவாக எடுக்கப்படும்.</small><button class="pri" onclick="ap(${i})">பணம் பதிவு செய்</button>
+ <label>எந்த மாதங்களுக்கு? மாதங்களை தட்டச்சு செய்யவும் அல்லது கீழே தொடவும்</label><input id="mtx" placeholder="எ.கா. மார்ச்-26, ஏப்ரல்-26  அல்லது  செப்-25 முதல் மார்ச்-26 வரை" oninput="pt(this.value)"><div class="chs" id="nch">${PKf().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("")}</div><details id="dpre"${nm.some(k=>k<-7)?" open":""}><summary>செப்டம்பர் 2025-க்கு முந்தைய மாதங்கள் (நிலுவை) - தொட்டுத் தேர்வு செய்ய</summary><div class="chs" id="nch2">${PKp().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("")}</div></details><div id="spw"></div><small>எதுவும் குறிப்பிடாவிட்டால்: ${MS[mi(m)]} ${yr(m)} சந்தாவாக எடுக்கப்படும்.</small><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="pxf" style="width:auto;margin:0"> கணக்கு தொடங்கும் முன் (செப் 2025-க்கு முன்) பெற்றது - வரவு கணக்கில் சேர்க்க வேண்டாம்</label><button class="pri" onclick="ap(${i})">பணம் பதிவு செய்</button>
  <label>பெயர் (திருத்தலாம்)</label><input value="${esc(d.n)}" onchange="S.donors[${i}].n=this.value.trim()||S.donors[${i}].n;sv()"><label>ஒப்புக்கொண்ட மாத சந்தா (₹)</label><input type="number" inputmode="numeric" value="${d.a}" onchange="S.donors[${i}].a=+this.value||0;sv()">
+ <label>செப் 2025-க்கு முன் மாத சந்தா (₹) - முந்தைய கணக்கிற்கு</label><input type="number" inputmode="numeric" value="${d.b!=null?d.b:d.a}" onchange="S.donors[${i}].b=+this.value||0;sv()">${HS(i)}
  ${S.donors[i].x!=null?`<small>${MS[mi(S.donors[i].x)]} ${ym(S.donors[i].x)} முதல் நீக்கப்பட்டவர்</small><button class="add" onclick="rmz(${i},null)">மீண்டும் சேர் (நீக்கத்தை ரத்து செய்)</button>`:`<button class="add" onclick="rmz(${i},${m},this)">${MS[mi(m)]} ${ym(m)} முதல் இவரை நீக்கு</button>`}
  <button onclick="cs()">மூடு</button>`)}
-function ap(i){const a=+$("#pa").value;if(!a)return;const p={a,d:$("#pd").value,ms:nm.slice()};
+function ap(i){const a=+$("#pa").value;if(!a)return;const p={a,d:$("#pd").value,ms:nm.slice()};if($("#pxf")&&$("#pxf").checked)p.x=1;
  if(nm.length>=2){const sp={};let sm=0;document.querySelectorAll("#spw .spi").forEach(x=>{const v=+x.value||0;sp[x.dataset.k]=v;sm+=v});if(sm!=a){alert("மாத வாரி தொகைகளின் கூட்டல் ("+sm+") மொத்தத் தொகைக்கு ("+a+") சமமாக இல்லை");return}p.sp=sp}
  ((S.pay[m]=S.pay[m]||{})[i]=S.pay[m][i]||[]).push(p);nm=[];sv();R();od(i)}
 function dp(i,j,b){if(!b.dataset.c){b.dataset.c=1;b.textContent="உறுதி?";return}S.pay[m][i].splice(j,1);if(!S.pay[m][i].length)delete S.pay[m][i];sv();R();od(i)}
@@ -160,12 +161,12 @@ const nf=n=>(+n||0).toLocaleString("en-IN"),nz=n=>n?nf(n):"–";
 const PH=(t,u)=>`<div class="ph"><img src="${LOGO}"><div class="t1">${esc(TL())}</div><div class="t2">Al Madrasathul Islamiyyah</div><div class="t3">${t}</div>${u?`<div class="t4">${u}</div>`:""}</div>`;
 const SM=r=>`<table class="pp sm">${r.map(([a,b,c])=>`<tr class="${c}"><td class="l">${a}</td><td>${fmt(b)}</td></tr>`).join("")}</table>`;
 const SG='<div class="sg"><div>தலைவர் கையொப்பம்</div><div>செயலாளர் கையொப்பம்</div><div>பொருளாளர் கையொப்பம்</div></div>';
-const pnote=(p,j,i)=>{const d=S.donors[i],A=al(i),L=spl(p,j).filter(([k])=>d.a>0&&(A[k]?A[k].a:0)<d.a).map(([k])=>sl(k)+" மீதி "+fmt(d.a-(A[k]?A[k].a:0)));return L.length?" - பகுதி தொகை ("+L.join(", ")+")":""};
+const pnote=(p,j,i)=>{const d=S.donors[i],A=al(i),L=spl(p,j).filter(([k])=>bm(d,k)>0&&(A[k]?A[k].a:0)<bm(d,k)).map(([k])=>sl(k)+" மீதி "+fmt(bm(d,k)-(A[k]?A[k].a:0)));return L.length?" - பகுதி தொகை ("+L.join(", ")+")":""};
 const mq=(ms,k)=>{const a=ms&&ms.length?[...ms].sort((x,y)=>x-y):[k],f=x=>MS[mi(x)]+" "+String(ym(x)).slice(2);
  if(a.length==1)return MS[mi(a[0])]+" "+ym(a[0])+" சந்தா";
  return a.every((x,i)=>!i||x==a[i-1]+1)?f(a[0])+" முதல் "+f(a[a.length-1])+" வரை":a.map(f).join(", ")};
 const PB='<div class="noprint"><button class="pri" onclick="window.print()">🖨 அச்சிடு / PDF சேமி</button><small>WhatsApp-ல் அனுப்ப:</small><div class="rb"><button class="add" onclick="shr(\'pdf\')">📄 PDF</button><button class="add" onclick="shr(\'img\')">🖼 படம்</button><button class="add" onclick="shr(\'both\')">📎 இரண்டும்</button></div></div>';
-function vPm(){const rw=[];S.donors.forEach((d,i)=>((S.pay[m]||{})[i]||[]).forEach(p=>rw.push({d:p.d,t:d.n,mo:mq(p.ms,m)+pnote(p,m,i),i:p.a,e:0})));
+function vPm(){const rw=[];S.donors.forEach((d,i)=>((S.pay[m]||{})[i]||[]).filter(p=>!p.x).forEach(p=>rw.push({d:p.d,t:d.n,mo:mq(p.ms,m)+pnote(p,m,i),i:p.a,e:0})));
  (S.exp[m]||[]).forEach(x=>rw.push({d:x.d,t:x.t,i:0,e:x.a}));rw.sort((a,b)=>(a.d||"9")>(b.d||"9")?1:-1);
  const o=opb(m),I=inc(m),E=exo(m),ni=rw.filter(r=>!r.e).length,fs=pfs(ni*1.9+(rw.length-ni)+4);
  return PB+WB+`<div class="pv" style="--pf:${fs}px">${PH("மாதாந்திர வரவு - செலவு கணக்கு","மாதம்: "+MS[mi(m)]+" "+yr(m))}
@@ -173,7 +174,7 @@ function vPm(){const rw=[];S.donors.forEach((d,i)=>((S.pay[m]||{})[i]||[]).forEa
  <tr class="op"><td></td><td></td><td class="l">இம்மாத ஆரம்ப கையிருப்பு</td><td class="ai">${nf(o)}</td><td></td></tr>
  ${rw.map((r,k)=>r.e?`<tr class="ex z${k%2}"><td>${k+1}</td><td>${dm(r.d)}</td><td class="l">${esc(r.t)}</td><td></td><td class="ae">${nf(r.e)}</td></tr>`:`<tr class="z${k%2}"><td>${k+1}</td><td>${dm(r.d)}</td><td class="l">${esc(r.t)}<br><span class="mo">${r.mo}</span></td><td class="ai">${nf(r.i)}</td><td></td></tr>`).join("")}
  <tr class="tt"><td></td><td></td><td class="l">மொத்தம் (ஆரம்ப கையிருப்பு உட்பட)</td><td>${nf(o+I)}</td><td>${nf(E)}</td></tr></tbody></table></div>
- ${SM([["இம்மாத ஆரம்ப கையிருப்பு",o,"s1"],["மொத்த வரவு",I,"s2"],["மொத்த செலவு",E,"s3"],["மீதி இருப்பு",o+I-E,"s4"]])}${rpt(m).html}</div>`}
+ ${SM([["இம்மாத ஆரம்ப கையிருப்பு",o,"s1"],["மொத்த வரவு",I,"s2"],["மொத்த செலவு",E,"s3"],["மீதி இருப்பு",o+I-E,"s4"]])}${xtbl(m)}${rpt(m).html}</div>`}
 let nm=[];
 const mi=k=>((k%12)+12)%12,ym=k=>2026+Math.floor((k+3)/12),sl=k=>SH[mi(k)]+" "+String(ym(k)).slice(2),rg=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i),hi=()=>Math.max(11,m,...Object.keys(S.pay).map(Number),...Object.keys(S.exp).map(Number)),PKf=()=>rg(-7,hi()+11);
 const mt=a=>a.slice().sort((x,y)=>x-y).map(sl).join(", ");
@@ -190,38 +191,38 @@ function pmo(v){let L=[],t,ly=null;RX.lastIndex=0;
 const chp=(k,on,fn)=>`<span class="ch ${k<0?"pre ":""}${on?"on":""}" onclick="${fn}">${sl(k)}</span>`;
 const PKp=()=>rg(-31,-8);let cdi=null;
 function nch(){const e=$("#nch");if(e)e.innerHTML=PKf().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("");const e2=$("#nch2");if(e2){e2.innerHTML=PKp().map(k=>chp(k,nm.includes(k),`tn(${k},this)`)).join("");const dt=$("#dpre");if(dt&&nm.some(k=>k<-7))dt.open=true}rsp()}
-function dsp(i){const d=S.donors[i],tot=+$("#pa").value||0,ks=[...nm].sort((a,b)=>a-b),A=al(i),o={};let rem=tot;ks.forEach((k,t)=>{const need=Math.max(0,d.a-(A[k]?A[k].a:0)),v=t==ks.length-1?rem:Math.min(rem,need);o[k]=v;rem-=v});return o}
+function dsp(i){const d=S.donors[i],tot=+$("#pa").value||0,ks=[...nm].sort((a,b)=>a-b),A=al(i),o={};let rem=tot;ks.forEach((k,t)=>{const need=Math.max(0,bm(d,k)-(A[k]?A[k].a:0)),v=t==ks.length-1?rem:Math.min(rem,need);o[k]=v;rem-=v});return o}
 function rsp(){const e=$("#spw");if(!e)return;const ks=[...nm].sort((a,b)=>a-b);if(ks.length<2){e.innerHTML="";return}const o=dsp(cdi);e.innerHTML="<small>மாத வாரி தொகை (மாற்றலாம்; கூட்டல் மொத்தத் தொகைக்கு சமமாக இருக்க வேண்டும்):</small>"+ks.map(k=>`<div class="pl"><span style="min-width:90px">${sl(k)}</span><input class="spi" type="number" inputmode="numeric" data-k="${k}" value="${o[k]}"></div>`).join("")}
 function pt(v){nm=pmo(v);nch()}
 const cv=i=>{const a=[...new Set(((S.pay[m]||{})[i]||[]).flatMap(p=>p.ms||[]))];return a.length?" · "+mt(a)+" மாதங்கள்":""};
 const cov=(k,i)=>Object.values(S.pay).some(x=>(x[i]||[]).some(p=>(p.ms||[]).includes(k)));
-const al=i=>{const r={};PKf().forEach(k=>r[k]={a:0,o:0});Object.entries(S.pay).forEach(([j,x])=>(x[i]||[]).forEach(p=>{j=+j;spl(p,j).forEach(([k,v])=>{const q=r[k]||(r[k]={a:0,o:0});q.a+=v;if(k!=j)q.o=1})}));return r};
+const al=i=>{const r={};rg(-19,hi()+11).forEach(k=>r[k]={a:0,o:0});Object.entries(S.pay).forEach(([j,x])=>(x[i]||[]).forEach(p=>{j=+j;spl(p,j).forEach(([k,v])=>{const q=r[k]||(r[k]={a:0,o:0});q.a+=v;if(k!=j)q.o=1})}));Object.entries((S.hist||{})[i]||{}).forEach(([k,v])=>{k=+k;const q=r[k]||(r[k]={a:0,o:0});q.a+=+v||0});return r};
 function tn(k,el){nm=nm.includes(k)?nm.filter(x=>x!=k):[...nm,k];el.classList.toggle("on");rsp()}
 function te(i,j,k,el){const p=S.pay[m][i][j];p.ms=(p.ms||[]).includes(k)?p.ms.filter(x=>x!=k):[...(p.ms||[]),k];delete p.sp;sv();el.classList.toggle("on")}
-let pmode="m",per=Math.max(0,1+Math.floor(cur()/12));
-const prs=()=>{const h=hi(),r=[{k:rg(-7,-1),t:"செப்டம்பர் 2025 - மார்ச் 2026",s:"செப் 25 - மார் 26"}];for(let f=0;f*12<=h;f++)r.push({k:rg(f*12,f*12+11),t:`ஏப்ரல் ${2026+f} - மார்ச் ${2027+f}`,s:`ஏப் ${26+f} - மார் ${27+f}`});return r},pks=()=>prs()[per].k;
-const psel=()=>`<div class="seg noprint">${prs().map((x,j)=>`<button class="${per==j?"on":""}" onclick="per=${j};R()">${x.s}</button>`).join("")}</div>`;const pfs=(n,cap=17,av=680)=>{const f=Math.floor((av/n-11)/1.3);return f>=12?Math.min(f,cap):13};
+let pmode="m",per=cur()<0?1:2+Math.floor(cur()/12);
+const prs=()=>{const h=hi(),r=[{k:rg(-19,-8),t:"செப்டம்பர் 2024 - ஆகஸ்ட் 2025 (நிர்வாகத்திற்கு முன்)",s:"செப் 24 - ஆக 25",f:"h",fy:"2024-25"},{k:rg(-7,-1),t:"செப்டம்பர் 2025 - மார்ச் 2026",s:"செப் 25 - மார் 26",f:"a",fy:"2025-26"}];for(let f=0;f*12<=h;f++)r.push({k:rg(f*12,f*12+11),t:`ஏப்ரல் ${2026+f} - மார்ச் ${2027+f}`,s:`ஏப் ${26+f} - மார் ${27+f}`,f:"y",fy:`${2026+f}-${27+f}`});return r},pks=()=>prs()[per].k,PP=()=>prs()[per],hasPre=()=>PP().f=="h";
+const psel=()=>`<div class="seg noprint">${prs().map((x,j)=>pmode=="y"&&x.f=="h"?"":`<button class="${per==j?"on":""}" onclick="per=${j};R()">${x.s}</button>`).join("")}</div>`;const pfs=(n,cap=17,av=680)=>{const f=Math.floor((av/n-11)/1.3);return f>=12?Math.min(f,cap):13};
 function vPr(){const b=(k,t)=>`<button class="${pmode==k?"on":""}" onclick="pmode='${k}';R()">${t}</button>`;
  return `<div class="seg noprint">${b("m","மாத கணக்கு")}${b("y","ஆண்டு கணக்கு")}${b("r","சந்தா பட்டியல் (A3)")}${b("f","நன்கொடை கணக்கு")}</div>`+(pmode=="y"||pmode=="r"?psel():"")+(pmode=="f"?fsel():"")+(pmode=="y"?vPy():pmode=="r"?vPg():pmode=="f"?vPf():vPm())}
-function vPy(){const K=pks();let TI=0,TE=0,r="";
+function vPy(){if(PP().f=="h")return PB+`<div class="pv">${PH("வரவு - செலவு கணக்கு","")}<p style="text-align:center">செப்டம்பர் 2025-க்கு முன் வரவு-செலவு கணக்கு இல்லை (நிர்வாகம் செப்டம்பர் 2025 முதல்).</p></div>`;const K=pks();let TI=0,TE=0,r="";
  K.forEach((k,x)=>{const o=opb(k),I=inc(k),E=exo(k);TI+=I;TE+=E;r+=`<tr class="z${x%2}"><td class="l">${MS[mi(k)]} ${ym(k)}</td><td>${nf(o)}</td><td class="ai">${I?nf(I):"–"}</td><td class="ae">${E?nf(E):"–"}</td><td class="bl">${nf(o+I-E)}</td></tr>`});
  const kl=K[K.length-1],o0=opb(K[0]),c=opb(kl)+inc(kl)-exo(kl);
- return PB+`<div class="pv" style="--pf:${pfs(K.length+3,20)}px">${PH(per?"ஆண்டு வரவு - செலவு கணக்கு":"வரவு - செலவு கணக்கு",prs()[per].t)}
+ return PB+`<div class="pv" style="--pf:${pfs(K.length+3,20)}px">${PH(PP().f=="y"?"ஆண்டு வரவு - செலவு கணக்கு":"வரவு - செலவு கணக்கு",PP().t)}
  <div class="grid"><table class="pp"><thead><tr><th>மாதம்</th><th>ஆரம்ப கையிருப்பு</th><th class="ci">வரவு</th><th class="ce">செலவு</th><th>மீதி இருப்பு</th></tr></thead><tbody>${r}<tr class="tt"><td class="l">மொத்தம்</td><td></td><td>${nf(TI)}</td><td>${nf(TE)}</td><td></td></tr></tbody></table></div>
- ${SM([["ஆரம்ப கையிருப்பு ("+(per?"ஏப்ரல் 1":"செப்டம்பர் 1")+")",o0,"s1"],["மொத்த வரவு",TI,"s2"],["மொத்த செலவு",TE,"s3"],["இறுதி மீதி இருப்பு (மார்ச் 31)",c,"s4"]])}</div>`}
+ ${SM([["ஆரம்ப கையிருப்பு ("+(PP().f=="y"?"ஏப்ரல் 1":"செப்டம்பர் 1")+")",o0,"s1"],["மொத்த வரவு",TI,"s2"],["மொத்த செலவு",TE,"s3"],["இறுதி மீதி இருப்பு (மார்ச் 31)",c,"s4"]])}</div>`}
 function vPg(){const K=pks(),AL=S.donors.map((_,i)=>al(i)),V=vis(K),n=V.length+4,fs=Math.max(11,Math.min(18,Math.floor((847/n-4)/1.3)));
- const rows=V.map((i,x)=>{const d=S.donors[i],PR_=per?null:pre(i);let t=PR_?PR_.a:0;const c=K.map(k=>{const y=AL[i][k];t+=y.a;return y.a?`<td class="${d.a>0&&y.a<d.a?"ptl":y.o?"oc":"pc"}">${nf(y.a)}</td>`:act(d,k)?`<td></td>`:`<td class="rm"></td>`}).join("")+(PR_?(PR_.a?`<td class="oc" style="white-space:nowrap">${mr(PR_.ks)} · ${nf(PR_.a)}</td>`:`<td></td>`):"");return `<tr class="z${x%2}"><td>${x+1}</td><td class="l">${esc(d.n)}</td>${c}<td class="tc">${nz(t)}</td></tr>`}).join("");
- const T=K.map(k=>sum(AL.map(x=>x[k].a))),PT=per?0:sum(S.donors.map((_,i)=>pre(i).a)),G=sum(T)+PT;
- return PB+`<div class="noprint"><small>A3 தாளில் படுக்கை வாக்கில் (Landscape) அச்சிட: அச்சு திரையில் Paper size = A3, Orientation = Landscape என்று தேர்வு செய்யவும்.</small></div><div class="pv" style="--pf:${fs}px">${PH("ஆண்டு சந்தா பதிவு",prs()[per].t)}
- <div class="grid"><table class="pp pg"><thead><tr><th>வ.எ</th><th>பெயர்</th>${K.map(k=>`<th>${per?SH[mi(k)]:sl(k)}</th>`).join("")}${per?"":"<th>முந்தைய</th>"}<th>மொத்தம்</th></tr></thead><tbody>${rows}
- <tr class="tt"><td></td><td class="l">சந்தா (மாத வாரி)</td>${T.map(x=>`<td>${nz(x)}</td>`).join("")}${per?"":`<td>${nz(PT)}</td>`}<td>${nz(G)}</td></tr>
- <tr class="tt2"><td></td><td class="l">வரவு (பணம் பெற்றது)</td>${K.map(k=>`<td>${nz(sinc(k))}</td>`).join("")}${per?"":"<td></td>"}<td>${nz(sum(K.map(k=>sinc(k))))}</td></tr></tbody></table></div>
+ const rows=V.map((i,x)=>{const d=S.donors[i],PR_=hasPre()?pre(i):null;let t=PR_?PR_.a:0;const c=K.map(k=>{const y=AL[i][k];t+=y.a;return y.a?`<td class="${bm(d,k)>0&&y.a<bm(d,k)?"ptl":y.o?"oc":"pc"}">${nf(y.a)}</td>`:act(d,k)?`<td></td>`:`<td class="rm"></td>`}).join("")+(PR_?(PR_.a?`<td class="oc" style="white-space:nowrap">${mr(PR_.ks)} · ${nf(PR_.a)}</td>`:`<td></td>`):"");return `<tr class="z${x%2}"><td>${x+1}</td><td class="l">${esc(d.n)}</td>${c}<td class="tc">${nz(t)}</td></tr>`}).join("");
+ const T=K.map(k=>sum(AL.map(x=>x[k].a))),PT=hasPre()?sum(S.donors.map((_,i)=>pre(i).a)):0,G=sum(T)+PT;
+ return PB+`<div class="noprint"><small>A3 தாளில் படுக்கை வாக்கில் (Landscape) அச்சிட: அச்சு திரையில் Paper size = A3, Orientation = Landscape என்று தேர்வு செய்யவும்.</small></div><div class="pv" style="--pf:${fs}px">${PH("ஆண்டு சந்தா பதிவு",PP().t)}
+ <div class="grid"><table class="pp pg"><thead><tr><th>வ.எ</th><th>பெயர்</th>${K.map(k=>`<th>${PP().f=="y"?SH[mi(k)]:sl(k)}</th>`).join("")}${hasPre()?"<th>முந்தைய</th>":""}<th>மொத்தம்</th></tr></thead><tbody>${rows}
+ <tr class="tt"><td></td><td class="l">சந்தா (மாத வாரி)</td>${T.map(x=>`<td>${nz(x)}</td>`).join("")}${hasPre()?`<td>${nz(PT)}</td>`:""}<td>${nz(G)}</td></tr>
+ <tr class="tt2"><td></td><td class="l">வரவு (பணம் பெற்றது)</td>${K.map(k=>`<td>${nz(sinc(k))}</td>`).join("")}${hasPre()?"<td></td>":""}<td>${nz(sum(K.map(k=>sinc(k))))}</td></tr></tbody></table></div>
  <div class="lg"><span class="pc">பச்சை</span> அந்த மாதத்தில் கொடுத்தது &nbsp; <span class="oc">மஞ்சள்</span> வேறு மாதத்தில் சேர்த்து கொடுத்தது (தொகை மாதங்களுக்குப் பிரித்துக் காட்டப்பட்டுள்ளது) &nbsp; <span class="ptl">ஆரஞ்சு</span> பகுதி தொகை மட்டும் &nbsp; <span class="rm">சாம்பல்</span> நீக்கப்பட்ட மாதம்</div></div>`}
 const spl=(p,j)=>{const ms=p.ms&&p.ms.length?[...p.ms].sort((a,b)=>a-b):[j];if(p.sp)return ms.map(k=>[k,+p.sp[k]||0]);const n=ms.length,b=Math.floor(p.a/n);return ms.map((k,t)=>[k,b+(t==n-1?p.a-b*n:0)])};
 const mr=a=>{a=[...a].sort((x,y)=>x-y);const f=x=>MS[mi(x)]+" "+String(ym(x)).slice(2);return a.length==1?MS[mi(a[0])]+" "+ym(a[0]):a.every((x,i)=>!i||x==a[i-1]+1)?f(a[0])+" முதல் "+f(a[a.length-1])+" வரை":a.map(f).join(", ")};
 function rpt(k){const D=S.donors;let n=0,paid=0,pend=0,agr=0,got=0,due=0,oth=[],nd=0,pp=0,early=[];
- D.forEach((d,i)=>{const a=al(i)[k].a;if(actv(i,k)){n++;agr+=d.a;got+=a;if(d.a>0&&a<d.a){pend++;due+=d.a-a;if(a>0)pp++}else if(a>0){paid++;const dr=sum(((S.pay[k]||{})[i]||[]).flatMap(p=>spl(p,k).filter(x=>x[0]==k).map(x=>x[1])));if(dr>0)nd++;else early.push({n:d.n,a,from:Object.entries(S.pay).filter(([j,x])=>+j!=k&&(x[i]||[]).some(p=>spl(p,+j).some(y=>y[0]==k))).map(([j])=>+j)})}}
-  ((S.pay[k]||{})[i]||[]).forEach(p=>{const o=spl(p,k).filter(x=>x[0]!=k);if(o.length)oth.push({n:d.n,ms:o.map(x=>x[0]),a:sum(o.map(x=>x[1]))})})});
+ D.forEach((d,i)=>{const a=al(i)[k].a;if(actv(i,k)){n++;agr+=d.a;got+=a;if(d.a>0&&a<d.a){pend++;due+=d.a-a;if(a>0)pp++}else if(a>0){paid++;const dr=sum(((S.pay[k]||{})[i]||[]).filter(p=>!p.x).flatMap(p=>spl(p,k).filter(x=>x[0]==k).map(x=>x[1])));if(dr>0)nd++;else early.push({n:d.n,a,from:(F=>F.length?F:[k])(Object.entries(S.pay).filter(([j,x])=>+j!=k&&(x[i]||[]).some(p=>spl(p,+j).some(y=>y[0]==k))).map(([j])=>+j))})}}
+  ((S.pay[k]||{})[i]||[]).forEach(p=>{if(p.x)return;const o=spl(p,k).filter(x=>x[0]!=k);if(o.length)oth.push({n:d.n,ms:o.map(x=>x[0]),a:sum(o.map(x=>x[1]))})})});
  const oT=sum(oth.map(x=>x.a)),o=opb(k),I=inc(k),E=exo(k),T=MS[mi(k)]+" மாதம் ("+ym(k)+")";
  const rows=[["மொத்த நபர்கள்",n,""],["மாத சந்தா செலுத்தியவர்கள்",paid,"ai"],...(early.length?[["   இதில் இம்மாதம் பணம் பெற்றவர்கள்",nd,"ai"],["   இதில் முன்பே கொடுத்தவர்கள்",early.length,"ai"]]:[]),["மாத சந்தா நிலுவையில் உள்ளவர்கள்",pend,"ae"],...(pp?[["   இதில் பகுதி தொகை மட்டும் கொடுத்தவர்கள்",pp,"ae"]]:[]),["ஒரு மாதத்திற்கான மொத்த சந்தா தொகை",fmt(agr),""],["இம்மாதத்தில் சந்தா தொகை வந்தது",fmt(got),"ai"],["இம்மாதத்தில் சந்தா தொகை வர வேண்டியது",fmt(due),"ae"]];
  let txt="அஸ்ஸலாமு அலைக்கும்\n\n*"+T+"* வரவு செலவு கணக்கு மற்றும் விவரங்கள்\n\n"+rows.map(r=>r[0]+": "+r[1]).join("\n");
@@ -259,7 +260,7 @@ async function build(){const el=document.querySelector(".pv");if(!el)throw 0;
   const pgs=[],js=[];for(const [y0,y1] of rg){const cv=document.createElement("canvas");cv.width=Math.round(W*SC);cv.height=Math.round(H*SC);const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);
    x.drawImage(big,0,y0*SC,big.width,(y1-y0)*SC,mg*SC,mg*SC,big.width,(y1-y0)*SC);
    const bl=await new Promise(r=>cv.toBlob(r,"image/jpeg",0.92));js.push(bl);pgs.push({b:new Uint8Array(await bl.arrayBuffer()),w:cv.width,h:cv.height})}
-  const pdf=mkpdf(pgs,A3?1190.55:595.28,841.89),fy=per?(2025+per)+"-"+(26+per):"2025-26",
+  const pdf=mkpdf(pgs,A3?1190.55:595.28,841.89),fy=PP().fy,
    nmf=pmode=="m"?"madrasa_"+ym(m)+"-"+String((mi(m)+3)%12+1).padStart(2,"0"):pmode=="y"?"madrasa_accounts_"+fy:pmode=="f"?"madrasa_nanganai":"madrasa_chanda_"+fy,
    f=new File([pdf],nmf+".pdf",{type:"application/pdf"});
   return {nm:nmf,pdf:f,imgs:js.map((x,i)=>new File([x],nmf+(js.length>1?"_"+(i+1):"")+".jpg",{type:"image/jpeg"}))}
@@ -314,25 +315,31 @@ function vPf(){FX();const f=pf&&pj(pf)?pf:0;
  const J=pj(f),T=pjT(f),TR=pR(f),TS=pS(f);
  return PB+`<div class="pv" style="--pf:${pfs(T.n*1.3+4,16)}px">${PH("நன்கொடை கணக்கு",esc(J.n))}${T.html}${SM([["பெற்ற நன்கொடை",TR,"s5"],["மொத்த செலவு",TS,"s3"],["மீதி இருப்பு",TR-TS,"s4"],...(pP(f)?[["வாக்குறுதி - இன்னும் வரவில்லை",pP(f),"s6"]]:[])])}</div>`}
 let showRm=false;
+const bm=(d,k)=>k<-7&&d.b!=null?d.b:d.a;
 const act=(d,k)=>d.x==null||k<d.x,actv=(i,k)=>act(S.donors[i],k)||al(i)[k].a>0;
-const pre=i=>{const A=al(i),ks=Object.keys(A).map(Number).filter(k=>k<-7&&A[k].a>0).sort((a,b)=>a-b);return {ks,a:sum(ks.map(k=>A[k].a))}};
-const vis=K=>S.donors.map((_,i)=>i).filter(i=>{const A=al(i);return K.some(k=>act(S.donors[i],k)||A[k].a>0)||(K[0]==-7&&pre(i).a>0)});
+const pre=i=>{const A=al(i),ks=Object.keys(A).map(Number).filter(k=>k<-19&&A[k].a>0).sort((a,b)=>a-b);return {ks,a:sum(ks.map(k=>A[k].a))}};
+const vis=K=>S.donors.map((_,i)=>i).filter(i=>{const A=al(i);return K.some(k=>act(S.donors[i],k)||A[k].a>0)||(K[0]==-19&&pre(i).a>0)});
 function rmz(i,k,b){if(k==null){delete S.donors[i].x;sv();cs();return}if(!b.dataset.c){b.dataset.c=1;b.textContent="உறுதிப்படுத்த மீண்டும் தட்டவும்";return}S.donors[i].x=k;sv();cs()}
+let hopen=false;
+const HS=i=>{const h=((S.hist||{})[i])||{},ks=rg(-19,-8);return `<details ${hopen?"open":""}><summary onclick="hopen=!hopen">முந்தைய கணக்கு: செப் 2024 - ஆக 2025 (நிர்வாகத்திற்கு முன் செலுத்தியவை)</summary><small>இவை வரவு கணக்கில் சேராது; சந்தா பட்டியலில் மட்டும் காட்டப்படும்.</small><input id="hqa" type="number" inputmode="numeric" placeholder="ஒவ்வொரு மாதத்திற்கும் ஒரே தொகை (₹)"><input id="hqm" placeholder="மாதங்கள் (காலியாக விட்டால் 12 மாதமும்) எ.கா. செப்-24 முதல் ஜூன்-25 வரை"><button class="add" onclick="hq(${i})">நிரப்பு</button>${ks.map(k=>`<div class="pl"><span style="min-width:90px">${sl(k)}</span><input type="number" inputmode="numeric" value="${h[k]||""}" onchange="sh(${i},${k},this.value)"></div>`).join("")}</details>`};
+function sh(i,k,v){S.hist=S.hist||{};const h=S.hist[i]=S.hist[i]||{};if(+v>0)h[k]=+v;else delete h[k];sv()}
+function hq(i){const a=+$("#hqa").value;if(!a)return;let ks=pmo($("#hqm").value).filter(k=>k>=-19&&k<=-8);if(!ks.length)ks=rg(-19,-8);S.hist=S.hist||{};const h=S.hist[i]=S.hist[i]||{};ks.forEach(k=>h[k]=a);hopen=true;sv();od(i)}
+const xtbl=k=>{const L=[];S.donors.forEach((d,i)=>((S.pay[k]||{})[i]||[]).filter(p=>p.x).forEach(p=>L.push({d:p.d,n:d.n,mo:mq(p.ms,k),a:p.a})));if(!L.length)return "";return `<div class="rst">கணக்கு தொடங்கும் முன் பெற்றவை (வரவு கணக்கில் சேர்க்கப்படவில்லை)</div><div class="grid"><table class="pp ro"><thead><tr><th>வ.எ</th><th>தேதி</th><th>பெயர்</th><th class="cp">தொகை</th></tr></thead><tbody>${L.map((x,j)=>`<tr class="pdg z${j%2}"><td>${j+1}</td><td>${dm(x.d)}</td><td class="l">${esc(x.n)}<br><span class="mo">${x.mo}</span></td><td class="apd">${nf(x.a)}</td></tr>`).join("")}</tbody></table></div>`};
 function ae(){const t=$("#et").value.trim(),a=+$("#ea").value;if(!t||!a)return;(S.exp[m]=S.exp[m]||[]).push({t,a,d:$("#ed").value});sv();R()}
 function de(j,b){if(!b.dataset.c){b.dataset.c=1;b.textContent="உறுதி?";return}S.exp[m].splice(j,1);sv();R()}
 function vSm(){const o=opb(m),i=inc(m),x=exo(m);
  let h=`<div class="card"><div class="kv"><span>இம்மாத ஆரம்ப கையிருப்பு</span><b>${fmt(o)}</b></div><div class="kv"><span>இம்மாத வரவு</span><b>${fmt(i)}</b></div><div class="kv"><span>இம்மாத செலவு</span><b>${fmt(x)}</b></div><div class="kv big"><span>மீதி இருப்பு</span><b>${fmt(o+i-x)}</b></div></div>`;
  {const au=auto(m),ov=(S.opens||{})[m];h+=`<label><small>${MS[mi(m)]} ஆரம்ப கையிருப்பு - மாற்ற விரும்பினால் எழுதவும் (₹)</small></label><input type="number" inputmode="numeric" placeholder="${au}" value="${ov==null?"":ov}" onchange="so(this.value)"><small>காலியாக விட்டால் முந்தைய மாத மீதி இருப்பு (${fmt(au)}) தானாக எடுக்கப்படும்.</small>`}
- h+=`<label><small>நிறுவனப் பெயர் (மேலேயும் அச்சிலும் வரும்)</small></label><input value="${esc(TL())}" onchange="S.title=this.value.trim()||TT;sv();$('#tl').textContent=TL()"><h3>ஆண்டு சந்தா பதிவு</h3>${psel()}<small>பச்சை = அந்த மாதத்தில் கொடுத்தது; மஞ்சள் = வேறு மாதத்தில் சேர்த்து கொடுத்தது. சேர்த்து கொடுத்த தொகை, தேர்வு செய்த மாதங்களுக்குச் சமமாகப் பிரித்துக் காட்டப்படும். சாம்பல் = நீக்கப்பட்ட மாதம். ஆரஞ்சு = பகுதி தொகை மட்டும் (முழு சந்தாவை விடக் குறைவு).</small><div class="grid"><table><tr><th>பெயர்</th>${pks().map(k=>`<th>${per?SH[mi(k)]:sl(k)}</th>`).join("")}${per?"":"<th>முந்தைய</th>"}<th>மொத்தம்</th></tr>`;
+ h+=`<label><small>நிறுவனப் பெயர் (மேலேயும் அச்சிலும் வரும்)</small></label><input value="${esc(TL())}" onchange="S.title=this.value.trim()||TT;sv();$('#tl').textContent=TL()"><h3>ஆண்டு சந்தா பதிவு</h3>${psel()}<small>பச்சை = அந்த மாதத்தில் கொடுத்தது; மஞ்சள் = வேறு மாதத்தில் சேர்த்து கொடுத்தது. சேர்த்து கொடுத்த தொகை, தேர்வு செய்த மாதங்களுக்குச் சமமாகப் பிரித்துக் காட்டப்படும். சாம்பல் = நீக்கப்பட்ட மாதம். ஆரஞ்சு = பகுதி தொகை மட்டும் (முழு சந்தாவை விடக் குறைவு).</small><div class="grid"><table><tr><th>பெயர்</th>${pks().map(k=>`<th>${PP().f=="y"?SH[mi(k)]:sl(k)}</th>`).join("")}${hasPre()?"<th>முந்தைய</th>":""}<th>மொத்தம்</th></tr>`;
  const AL=S.donors.map((_,i)=>al(i)),K=pks();
- vis(K).forEach((i,x)=>{const d=S.donors[i],PR_=per?null:pre(i);let tot=PR_?PR_.a:0;h+=`<tr class="z${x%2}"><td>${esc(d.n)}</td>`+K.map(k=>{const v=AL[i][k].a;tot+=v;return v?`<td class="${d.a>0&&v<d.a?"q":AL[i][k].o?"c":"p"}">${v}</td>`:act(d,k)?`<td><small>·</small></td>`:`<td class="rm"></td>`}).join("")+(PR_?(PR_.a?`<td class="c">${mr(PR_.ks)}<br>${PR_.a}</td>`:`<td><small>·</small></td>`):"")+`<td><b>${tot}</b></td></tr>`});
- h+=`<tr class="t"><td>சந்தா (மாத வாரி)</td>${K.map(k=>`<td>${sum(AL.map(x=>x[k].a))}</td>`).join("")}${per?"":`<td>${sum(S.donors.map((_,i)=>pre(i).a))}</td>`}<td>${sum(AL.map(x=>sum(K.map(k=>x[k].a))))+(per?0:sum(S.donors.map((_,i)=>pre(i).a)))}</td></tr><tr class="t"><td>வரவு (பணம் பெற்றது)</td>${K.map(k=>`<td>${sinc(k)}</td>`).join("")}${per?"":"<td></td>"}<td>${sum(K.map(k=>sinc(k)))}</td></tr></table></div>`;
- h+=`<button class="pri" onclick="ex()">⬇ ஆண்டு அட்டவணை CSV (Excel)</button><button class="add" onclick="bk()">💾 பேக்அப் சேமி (JSON)</button><small>பேக்அப் மீட்டெடுக்க:</small><input type="file" accept=".json" onchange="rs(this.files[0])"><small>ஆப் பதிப்பு: முந்தைய மாதங்கள் + பகுதி தொகை (20/10/2026) · முகவரி: ${location.host}</small><button class="add" onclick="upd()">🔄 புதிய பதிப்பை ஏற்று (இணையம் தேவை)</button>`;
+ vis(K).forEach((i,x)=>{const d=S.donors[i],PR_=hasPre()?pre(i):null;let tot=PR_?PR_.a:0;h+=`<tr class="z${x%2}"><td>${esc(d.n)}</td>`+K.map(k=>{const v=AL[i][k].a;tot+=v;return v?`<td class="${bm(d,k)>0&&v<bm(d,k)?"q":AL[i][k].o?"c":"p"}">${v}</td>`:act(d,k)?`<td><small>·</small></td>`:`<td class="rm"></td>`}).join("")+(PR_?(PR_.a?`<td class="c">${mr(PR_.ks)}<br>${PR_.a}</td>`:`<td><small>·</small></td>`):"")+`<td><b>${tot}</b></td></tr>`});
+ h+=`<tr class="t"><td>சந்தா (மாத வாரி)</td>${K.map(k=>`<td>${sum(AL.map(x=>x[k].a))}</td>`).join("")}${hasPre()?`<td>${sum(S.donors.map((_,i)=>pre(i).a))}</td>`:""}<td>${sum(AL.map(x=>sum(K.map(k=>x[k].a))))+(hasPre()?sum(S.donors.map((_,i)=>pre(i).a)):0)}</td></tr><tr class="t"><td>வரவு (பணம் பெற்றது)</td>${K.map(k=>`<td>${sinc(k)}</td>`).join("")}${hasPre()?"<td></td>":""}<td>${sum(K.map(k=>sinc(k)))}</td></tr></table></div>`;
+ h+=`<button class="pri" onclick="ex()">⬇ ஆண்டு அட்டவணை CSV (Excel)</button><button class="add" onclick="bk()">💾 பேக்அப் சேமி (JSON)</button><small>பேக்அப் மீட்டெடுக்க:</small><input type="file" accept=".json" onchange="rs(this.files[0])"><small>ஆப் பதிப்பு: முந்தைய கணக்கு + முன்பே பெற்றது + பகுதி தொகை (21/10/2026) · முகவரி: ${location.host}</small><button class="add" onclick="upd()">🔄 புதிய பதிப்பை ஏற்று (இணையம் தேவை)</button>`;
  return h}
-async function ex(){const K=pks(),r=[["பெயர்",...K.map(sl),...(per?[]:["முந்தைய மாதங்கள்","முந்தைய தொகை"]),"மொத்தம்"]];vis(K).forEach(i=>{const d=S.donors[i],A=al(i),v=K.map(k=>A[k].a),pr=per?{ks:[],a:0}:pre(i);r.push([d.n,...v,...(per?[]:[pr.a?mr(pr.ks):"",pr.a]),sum(v)+pr.a])});
- const T=K.map(k=>sum(S.donors.map((_,i)=>al(i)[k].a))),PT=per?0:sum(S.donors.map((_,i)=>pre(i).a));r.push(["மொத்தம்",...T,...(per?[]:["",PT]),sum(T)+PT]);
+async function ex(){const K=pks(),r=[["பெயர்",...K.map(sl),...(hasPre()?["முந்தைய மாதங்கள்","முந்தைய தொகை"]:[]),"மொத்தம்"]];vis(K).forEach(i=>{const d=S.donors[i],A=al(i),v=K.map(k=>A[k].a),pr=hasPre()?pre(i):{ks:[],a:0};r.push([d.n,...v,...(hasPre()?[pr.a?mr(pr.ks):"",pr.a]:[]),sum(v)+pr.a])});
+ const T=K.map(k=>sum(S.donors.map((_,i)=>al(i)[k].a))),PT=hasPre()?sum(S.donors.map((_,i)=>pre(i).a)):0;r.push(["மொத்தம்",...T,...(hasPre()?["",PT]:[]),sum(T)+PT]);
  const csv="\ufeff"+r.map(a=>a.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
- dl("sandha_"+(per?(2025+per)+"-"+(26+per):"2025-26")+".csv",csv,"text/csv")}
+ dl("sandha_"+PP().fy+".csv",csv,"text/csv")}
 (function(){
  try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}
  if(!S||!S.donors)S=def();FX();
